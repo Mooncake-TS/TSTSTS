@@ -500,8 +500,9 @@
         <p class="mini-label">괜찮아요</p>
         <h2>천천히 생각해주세요!</h2>
         <p class="subcopy">답장해주신 것만으로도 고마워요 :)<br>전혀 부담 갖지 않으셔도 돼요.</p>
+        <p class="delivery-status" id="decline-delivery-status" role="status"></p>
         <div class="actions">
-          <button class="button secondary" data-go="intro">처음 화면으로</button>
+          <button class="button secondary" id="decline-restart-button">처음 화면으로</button>
         </div>
       </section>
 
@@ -573,7 +574,10 @@
     }
 
     document.querySelectorAll("[data-go]").forEach((button) => {
-      button.addEventListener("click", () => showScreen(button.dataset.go));
+      button.addEventListener("click", () => {
+        showScreen(button.dataset.go);
+        if (button.dataset.go === "wait") sendResult("declined");
+      });
     });
 
     document.querySelectorAll("[data-choice]").forEach((group) => {
@@ -601,28 +605,30 @@
       });
     });
 
-    const deliveryStatus = document.querySelector("#delivery-status");
-
-    function setDeliveryStatus(message, type = "") {
-      deliveryStatus.textContent = message;
-      deliveryStatus.className = `delivery-status ${type}`.trim();
+    function setDeliveryStatus(message, type = "", resultType = "accepted") {
+      const status = document.querySelector(resultType === "declined" ? "#decline-delivery-status" : "#delivery-status");
+      status.textContent = message;
+      status.className = `delivery-status ${type}`.trim();
     }
 
-    async function sendResult() {
+    async function sendResult(resultType = "accepted") {
       if (submissionSent || submissionInFlight) return;
       if (submissionAttempts >= 3) {
-        setDeliveryStatus("답변을 전달하지 못했어요. 잠시 후 다시 열어주세요.", "error");
+        setDeliveryStatus("답변을 전달하지 못했어요. 잠시 후 다시 열어주세요.", "error", resultType);
         return;
       }
 
       submissionInFlight = true;
       submissionAttempts += 1;
-      setDeliveryStatus("답변을 조용히 전달하고 있어요…");
+      setDeliveryStatus("답변을 조용히 전달하고 있어요…", "", resultType);
 
       const formData = new FormData();
-      formData.append("_subject", "식사 약속 답변이 도착했어요 😊");
-      formData.append("편한 시간", state.time);
-      formData.append("먹고 싶은 것", state.food);
+      formData.append("_subject", resultType === "declined" ? "식사 제안 답변이 도착했어요" : "식사 약속 답변이 도착했어요 😊");
+      formData.append("최종 응답", resultType === "declined" ? "조금 더 생각해볼게요" : "같이 식사해요");
+      if (resultType === "accepted") {
+        formData.append("편한 시간", state.time);
+        formData.append("먹고 싶은 것", state.food);
+      }
       formData.append("응답 시각", new Date().toLocaleString("ko-KR"));
 
       try {
@@ -634,26 +640,31 @@
 
         if (!response.ok) throw new Error("메일 전송 실패");
         submissionSent = true;
-        setDeliveryStatus("답변을 잘 전달했어요 ✓", "success");
+        setDeliveryStatus("답변을 잘 전달했어요 ✓", "success", resultType);
       } catch (error) {
-        setDeliveryStatus("전송이 잠시 늦어지고 있어요. 자동으로 다시 시도할게요.", "error");
-        window.setTimeout(sendResult, 3000);
+        setDeliveryStatus("전송이 잠시 늦어지고 있어요. 자동으로 다시 시도할게요.", "error", resultType);
+        window.setTimeout(() => sendResult(resultType), 3000);
       } finally {
         submissionInFlight = false;
       }
     }
 
-    document.querySelector("#restart-button").addEventListener("click", () => {
+    function resetApp() {
       state.time = "";
       state.food = "";
       submissionSent = false;
       submissionInFlight = false;
       submissionAttempts = 0;
-      setDeliveryStatus("");
+      setDeliveryStatus("", "", "accepted");
+      setDeliveryStatus("", "", "declined");
       document.querySelectorAll(".option.selected").forEach((item) => item.classList.remove("selected"));
       document.querySelectorAll("[data-next]").forEach((button) => button.disabled = true);
       showScreen("intro");
-    });
+    }
+
+    document.querySelector("#restart-button").addEventListener("click", resetApp);
+    document.querySelector("#decline-restart-button").addEventListener("click", resetApp);
   </script>
 </body>
 </html>
+
