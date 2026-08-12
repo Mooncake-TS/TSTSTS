@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff9ed">
+  <title>질문이 하나 있어요!</title>
+  <style>
+    :root {
+      --ink: #33323a;
+      --muted: #77727d;
+      --paper: #fffdf8;
+      --cream: #fff6dd;
+      --yellow: #ffd96a;
+      --yellow-deep: #f3bd35;
+      --blue: #83c8e8;
+      --pink: #f5a8b8;
+      --line: #eee7d9;
+      --shadow: 0 18px 45px rgba(78, 66, 40, .13);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 14%, rgba(255, 255, 255, .95) 0 75px, transparent 76px),
+        radial-gradient(circle at 90% 85%, rgba(131, 200, 232, .16) 0 110px, transparent 111px),
+        #fff9ed;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      word-break: keep-all;
+    }
+
+    button { font: inherit; }
+
+    .app {
+      display: grid;
+      min-height: 100svh;
+      place-items: center;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+    }
+
+    .card {
+      position: relative;
+      width: min(100%, 390px);
+      min-height: min(720px, calc(100svh - 36px));
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .9);
+      border-radius: 30px;
+      background: rgba(255, 253, 248, .96);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 62px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      color: #9a927f;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border-radius: 9px;
+      color: #725a13;
+      background: var(--yellow);
+      transform: rotate(-4deg);
+    }
+
+    .steps {
+      display: flex;
+      gap: 5px;
+    }
+
+    .steps i {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #e9e2d3;
+      transition: width .25s ease, background .25s ease;
+    }
+
+    .steps i.active {
+      width: 20px;
+      background: var(--yellow-deep);
+    }
+
+    .screen {
+      display: none;
+      min-height: calc(min(720px, calc(100svh - 36px)) - 62px);
+      flex-direction: column;
+      padding: 34px 25px 26px;
+      animation: enter .34s ease both;
+    }
+
+    .screen.active { display: flex; }
+
+    .intro {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .mini-label {
+      margin: 0 0 13px;
+      color: #b2933f;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .13em;
+    }
+
+    h1, h2, p { margin-top: 0; }
+
+    h1, h2 {
+      margin-bottom: 14px;
+      font-size: clamp(29px, 8vw, 37px);
+      line-height: 1.35;
+      letter-spacing: -.045em;
+    }
+
+    h1 { font-weight: 850; }
+    h2 { font-weight: 800; }
+
+    .subcopy {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .character {
+      display: flex;
+      width: 180px;
+      height: 195px;
+      margin-bottom: 25px;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .character img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(8px 9px 0 #d9eff8);
+    }
+
+    .actions {
+      display: grid;
+      width: 100%;
+      gap: 10px;
+      margin-top: 33px;
+    }
+
+    .button {
+      width: 100%;
+      min-height: 55px;
+      padding: 13px 17px;
+      border: 0;
+      border-radius: 17px;
+      color: #3e351f;
+      background: var(--yellow);
+      box-shadow: 0 8px 18px rgba(208, 155, 24, .18);
+      font-size: 15px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform .16s ease, filter .16s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .button:active { transform: scale(.98); }
+    .button:hover { filter: brightness(.98); }
+    .button:disabled { opacity: .38; cursor: default; box-shadow: none; }
+
+    .button.secondary {
+      border: 1px solid var(--line);
+      color: #665f67;
+      background: white;
+      box-shadow: none;
+    }
+
+    .button.blue {
+      color: #173e50;
+      background: #bfe7f6;
+      box-shadow: 0 8px 18px rgba(70, 158, 195, .14);
+    }
+
+    .tiny {
+      margin: 14px 0 0;
+      color: #aea79a;
+      font-size: 10px;
+    }
+
+    .story-screen .bubble {
+      position: relative;
+      margin: 26px 0 0;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: white;
+      box-shadow: 0 9px 25px rgba(65, 55, 39, .07);
+    }
+
+    .bubble::after {
+      position: absolute;
+      right: 30px;
+      bottom: -10px;
+      width: 18px;
+      height: 18px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: white;
+      content: "";
+      transform: rotate(45deg);
+    }
+
+    .bubble p {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.55;
+      letter-spacing: -.025em;
+    }
+
+    .story-screen .actions { margin-top: auto; }
+
+    .choice-screen .subcopy { margin-bottom: 25px; }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      gap: 13px;
+      padding: 12px 15px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      color: #4d4950;
+      background: white;
+      font-size: 14px;
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+      transition: border .16s ease, background .16s ease, transform .16s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .option:active { transform: scale(.985); }
+
+    .option.selected {
+      border-color: #e6b52e;
+      background: #fff5ce;
+      box-shadow: inset 0 0 0 1px #e6b52e;
+    }
+
+    .option-emoji {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 12px;
+      background: #f7f3eb;
+      font-size: 20px;
+    }
+
+    .choice-screen .actions { margin-top: auto; }
+
+    .hold-screen {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hold-face {
+      display: grid;
+      width: 120px;
+      height: 120px;
+      margin-bottom: 28px;
+      place-items: center;
+      border: 2px solid #454145;
+      border-radius: 50%;
+      background: #d8eff8;
+      box-shadow: 8px 9px 0 #ffe6a7;
+      font-size: 48px;
+    }
+
+    .hold-face.sad-character {
+      width: 190px;
+      height: 220px;
+      margin-bottom: 20px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .hold-face.really-character {
+      width: 230px;
+      height: 175px;
+      margin-bottom: 22px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .sad-character img,
+    .really-character img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(8px 9px 0 #ffe6a7);
+    }
+
+    .hold-screen .actions { margin-top: 30px; }
+
+    .summary {
+      margin: 24px 0 20px;
+      padding: 19px;
+      border: 1px dashed #dbc66f;
+      border-radius: 20px;
+      background: #fff9dc;
+    }
+
+    .success-character {
+      width: 170px;
+      height: 145px;
+      margin: 12px auto 0;
+    }
+
+    .success-character img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(7px 8px 0 #d9eff8);
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(174, 145, 46, .16);
+    }
+
+    .summary-row:last-child { border-bottom: 0; }
+
+    .summary-row span {
+      color: #94845d;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .summary-row strong {
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .finish-note {
+      margin: auto 0 17px;
+      color: #665d61;
+      font-size: 18px;
+      font-weight: 850;
+      text-align: center;
+      line-height: 1.55;
+    }
+
+    .delivery-status {
+      min-height: 20px;
+      margin: 0 0 12px;
+      color: #8a7a51;
+      font-size: 12px;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .delivery-status.success { color: #4f8a62; }
+    .delivery-status.error { color: #b55d5d; }
+
+    .toast {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      left: 22px;
+      z-index: 5;
+      padding: 13px 16px;
+      border-radius: 15px;
+      color: white;
+      background: rgba(51, 50, 58, .92);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 430px) {
+      body { background: var(--paper); }
+      .app { padding: 0; }
+      .card {
+        width: 100%;
+        min-height: 100svh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .screen { min-height: calc(100svh - 62px); }
+    }
+
+    @media (max-height: 680px) {
+      .screen { padding-top: 24px; padding-bottom: 20px; }
+      .character { width: 135px; height: 145px; margin-bottom: 18px; }
+      h1, h2 { font-size: 27px; }
+      .bubble { margin-top: 18px !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card" aria-live="polite">
+      <header class="topbar">
+        <div class="logo"><span class="logo-mark">!</span><span>작은 질문</span></div>
+        <div class="steps" aria-hidden="true">
+          <i class="active"></i><i></i><i></i><i></i><i></i>
+        </div>
+      </header>
+
+      <section class="screen intro active" data-screen="intro">
+        <div class="character"><img src="shinchan-cutout.png" alt="공책을 들고 용기 내는 짱구"></div>
+        <p class="mini-label">QUESTION 01</p>
+        <h1>질문이 하나 있어요!</h1>
+        <p class="subcopy">혹시 시간 괜찮으실 때<br>저한테 조금만 내주실 수 있나요?</p>
+        <div class="actions">
+          <button class="button" data-go="reveal">좋아요 🙂</button>
+          <button class="button secondary" data-go="reveal">무슨 일인데요? 👀</button>
+        </div>
+      </section>
+
+      <section class="screen story-screen" data-screen="reveal">
+        <p class="mini-label">QUESTION 02</p>
+        <h2>사실 별건 아니고요…</h2>
+        <p class="subcopy">조금 용기 내서 여쭤보는 거예요.</p>
+        <div class="bubble">
+          <p>괜찮으실 때<br>같이 식사 한번 하고 싶었어요 😊</p>
+        </div>
+        <div class="actions">
+          <button class="button" data-go="time">좋아요! 🍚</button>
+          <button class="button secondary" data-go="really">조금 생각해볼게요 🙂</button>
+        </div>
+      </section>
+
+      <section class="screen hold-screen" data-screen="really">
+        <div class="hold-face really-character"><img src="shinchan-really-cutout.png" alt="창가에서 걱정스럽게 바라보는 짱구"></div>
+        <p class="mini-label">잠깐만요…</p>
+        <h2>진짜여…? ㅠㅠ</h2>
+        <p class="subcopy">부담드리려던 건 절대 아니에요.<br>편하게 생각해주세요!</p>
+        <div class="actions">
+          <button class="button" data-go="time">좋아요, 식사해요! 🍚</button>
+          <button class="button secondary" data-go="wait">조금만 더 생각해볼게요</button>
+        </div>
+      </section>
+
+      <section class="screen hold-screen" data-screen="wait">
+        <div class="hold-face sad-character"><img src="shinchan-sad-cutout.png" alt="문 뒤에서 슬프게 바라보는 짱구"></div>
+        <p class="mini-label">괜찮아요</p>
+        <h2>천천히 생각해주세요!</h2>
+        <p class="subcopy">답장해주신 것만으로도 고마워요 :)<br>전혀 부담 갖지 않으셔도 돼요.</p>
+        <div class="actions">
+          <button class="button secondary" data-go="intro">처음 화면으로</button>
+        </div>
+      </section>
+
+      <section class="screen choice-screen" data-screen="time">
+        <p class="mini-label">QUESTION 03</p>
+        <h2>그럼 언제가<br>가장 편하세요?</h2>
+        <p class="subcopy">제가 최대한 맞춰볼게요 :)</p>
+        <div class="options" data-choice="time">
+          <button class="option" data-value="평일 저녁"><span class="option-emoji">🌙</span>평일 저녁</button>
+          <button class="option" data-value="주말 점심"><span class="option-emoji">☀️</span>주말 점심</button>
+          <button class="option" data-value="주말 저녁"><span class="option-emoji">🌆</span>주말 저녁</button>
+          <button class="option" data-value="같이 정하기"><span class="option-emoji">💬</span>같이 정하기</button>
+        </div>
+        <div class="actions">
+          <button class="button" data-next="food" disabled>다음 질문</button>
+        </div>
+      </section>
+
+      <section class="screen choice-screen" data-screen="food">
+        <p class="mini-label">QUESTION 04</p>
+        <h2>어떤 음식이<br>좋으세요?</h2>
+        <p class="subcopy">좋아하시는 걸로 고르고 싶어요!</p>
+        <div class="options" data-choice="food">
+          <button class="option" data-value="한식"><span class="option-emoji">🍚</span>한식</button>
+          <button class="option" data-value="일식"><span class="option-emoji">🍣</span>일식</button>
+          <button class="option" data-value="양식"><span class="option-emoji">🍝</span>양식</button>
+          <button class="option" data-value="뭐든 좋아요"><span class="option-emoji">😋</span>뭐든 좋아요</button>
+        </div>
+        <div class="actions">
+          <button class="button" data-next="finish" disabled>선택 완료!</button>
+        </div>
+      </section>
+
+      <section class="screen choice-screen" data-screen="finish">
+        <p class="mini-label">MISSION COMPLETE</p>
+        <h2>약속 잡기 성공! 🎉</h2>
+        <div class="success-character"><img src="shinchan-success-cutout.png" alt="기뻐서 두 볼을 감싼 짱구"></div>
+        <p class="subcopy">고른 내용은 이렇게 기억해둘게요.</p>
+        <div class="summary">
+          <div class="summary-row"><span>편한 시간</span><strong id="chosen-time">-</strong></div>
+          <div class="summary-row"><span>먹고 싶은 것</span><strong id="chosen-food">-</strong></div>
+        </div>
+        <p class="finish-note">2차 용기 내봤어요...!!<br><small>그날 봬요 :)</small></p>
+        <p class="delivery-status" id="delivery-status" role="status"></p>
+        <div class="actions">
+          <button class="button secondary" id="restart-button">처음부터 다시 보기</button>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status"></div>
+    </section>
+  </main>
+
+  <script>
+    // Formspree에서 만든 폼의 endpoint로 바꾸면 선택 결과가 메일로 자동 전송됩니다.
+    const FORM_ENDPOINT = "https://formspree.io/f/xjybrylo";
+    const state = { time: "", food: "" };
+    let submissionSent = false;
+    let submissionInFlight = false;
+    let submissionAttempts = 0;
+    const screens = [...document.querySelectorAll("[data-screen]")];
+    const dots = [...document.querySelectorAll(".steps i")];
+    const order = { intro: 0, reveal: 1, really: 1, wait: 1, time: 2, food: 3, finish: 4 };
+
+    function showScreen(name) {
+      screens.forEach((screen) => screen.classList.toggle("active", screen.dataset.screen === name));
+      dots.forEach((dot, index) => dot.classList.toggle("active", index === order[name]));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.querySelectorAll("[data-go]").forEach((button) => {
+      button.addEventListener("click", () => showScreen(button.dataset.go));
+    });
+
+    document.querySelectorAll("[data-choice]").forEach((group) => {
+      const key = group.dataset.choice;
+      const nextButton = group.closest(".screen").querySelector("[data-next]");
+
+      group.querySelectorAll(".option").forEach((button) => {
+        button.addEventListener("click", () => {
+          group.querySelectorAll(".option").forEach((item) => item.classList.remove("selected"));
+          button.classList.add("selected");
+          state[key] = button.dataset.value;
+          nextButton.disabled = false;
+        });
+      });
+    });
+
+    document.querySelectorAll("[data-next]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.next === "finish") {
+          document.querySelector("#chosen-time").textContent = state.time;
+          document.querySelector("#chosen-food").textContent = state.food;
+        }
+        showScreen(button.dataset.next);
+        if (button.dataset.next === "finish") sendResult();
+      });
+    });
+
+    const deliveryStatus = document.querySelector("#delivery-status");
+
+    function setDeliveryStatus(message, type = "") {
+      deliveryStatus.textContent = message;
+      deliveryStatus.className = `delivery-status ${type}`.trim();
+    }
+
+    async function sendResult() {
+      if (submissionSent || submissionInFlight) return;
+      if (submissionAttempts >= 3) {
+        setDeliveryStatus("답변을 전달하지 못했어요. 잠시 후 다시 열어주세요.", "error");
+        return;
+      }
+
+      submissionInFlight = true;
+      submissionAttempts += 1;
+      setDeliveryStatus("답변을 조용히 전달하고 있어요…");
+
+      const formData = new FormData();
+      formData.append("_subject", "식사 약속 답변이 도착했어요 😊");
+      formData.append("편한 시간", state.time);
+      formData.append("먹고 싶은 것", state.food);
+      formData.append("응답 시각", new Date().toLocaleString("ko-KR"));
+
+      try {
+        const response = await fetch(FORM_ENDPOINT, {
+          method: "POST",
+          body: formData,
+          headers: { Accept: "application/json" }
+        });
+
+        if (!response.ok) throw new Error("메일 전송 실패");
+        submissionSent = true;
+        setDeliveryStatus("답변을 잘 전달했어요 ✓", "success");
+      } catch (error) {
+        setDeliveryStatus("전송이 잠시 늦어지고 있어요. 자동으로 다시 시도할게요.", "error");
+        window.setTimeout(sendResult, 3000);
+      } finally {
+        submissionInFlight = false;
+      }
+    }
+
+    document.querySelector("#restart-button").addEventListener("click", () => {
+      state.time = "";
+      state.food = "";
+      submissionSent = false;
+      submissionInFlight = false;
+      submissionAttempts = 0;
+      setDeliveryStatus("");
+      document.querySelectorAll(".option.selected").forEach((item) => item.classList.remove("selected"));
+      document.querySelectorAll("[data-next]").forEach((button) => button.disabled = true);
+      showScreen("intro");
+    });
+  </script>
+</body>
+</html>
